@@ -74,15 +74,20 @@ def beyond_accuracy(res: dict, model: str) -> None:
                "uses its exported probabilities learned from training patients.")
 
     st.subheader(f"TEST · {MODEL_LABEL[model]} · threshold 0.50")
-    for column, (label, metric) in zip(st.columns(4), [
-        ("Accuracy", "accuracy"), ("Sensitivity", "sensitivity"),
-        ("Specificity", "specificity"), ("Precision", "precision"),
-    ]):
-        column.metric(f"TEST {label}", m11.fmt_pct(metrics[metric]))
-    st.caption("TEST confusion matrix · patient counts · rows = Actual, columns = Predicted · positive first")
-    st.table(confusion_table(c))
-    st.caption("TP: correctly flagged positive patients; FN: positive patients missed; "
-               "FP: negative patients flagged (false alarms); TN: negative patients correctly not flagged.")
+    matrix_column, metrics_column = st.columns(2)
+    with matrix_column:
+        st.caption("TEST confusion matrix · patient counts · rows = Actual, columns = Predicted · positive first")
+        st.table(confusion_table(c))
+        st.caption("TP: correctly flagged positive patients; FN: positive patients missed; "
+                   "FP: negative patients flagged (false alarms); TN: negative patients correctly not flagged.")
+    with metrics_column:
+        st.caption("TEST key performance metrics · threshold 0.50")
+        for metric_row in [
+            [("Sensitivity", "sensitivity"), ("Specificity", "specificity")],
+            [("Precision", "precision"), ("Accuracy", "accuracy")],
+        ]:
+            for column, (label, metric) in zip(st.columns(2), metric_row):
+                column.metric(f"TEST {label}", m11.fmt_pct(metrics[metric]))
     st.markdown(
         f"- **TEST sensitivity (Recall/TPR):** Of patients {positive}, the share flagged "
         "— TP ÷ (TP + FN).\n"
