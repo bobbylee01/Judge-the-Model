@@ -206,12 +206,62 @@ def threshold(res: dict, model: str) -> None:
 
 # ---- 3. Training vs. Test ------------------------------------------------------
 def train_vs_test(res: dict, model: str) -> None:
-    starter_note("training and test AUROC of every model, in a table.")
+    st.write("Compare how well each model ranks patients it learned from with patients "
+             "it never saw during fitting. Use the sidebar to change dataset or inspect a model.")
+    training_count, test_count = st.columns(2)
+    training_count.metric("TRAINING patients", f"{res['train']['n']:,}")
+    test_count.metric("TEST patients", f"{res['test']['n']:,}")
     s = m11.auroc_summary(res)
-    rows = [{"Model": m11.MODEL_LABEL[m], f"{TRAIN} AUROC": m11.fmt_num(v["train"]), f"{TEST} AUROC": m11.fmt_num(v["test"])}
-            for m, v in s.items()]
-    st.caption(f"{TRAIN} and {TEST} · AUROC on the rows each model learned from, and on rows it never saw")
+    selected = s[model]
+    st.subheader(f"TRAINING and TEST · {MODEL_LABEL[model]}")
+    for column, label, value in zip(
+        st.columns(3),
+        ["TRAINING AUROC", "TEST AUROC", "Generalization gap · TRAINING − TEST"],
+        [selected["train"], selected["test"], selected["gap"]],
+    ):
+        column.metric(label, m11.fmt_num(value, 4))
+
+    st.subheader("TRAINING and TEST · All five models")
+    rows = [{"Model": MODEL_LABEL[name],
+             "TRAINING AUROC": m11.fmt_num(s[name]["train"], 4),
+             "TEST AUROC": m11.fmt_num(s[name]["test"], 4),
+             "Generalization gap (TRAINING − TEST)": m11.fmt_num(s[name]["gap"], 4)}
+            for name in m11.MODELS if name in s]
+    st.caption("TRAINING and TEST comparison · larger AUROC means better ranking · "
+               "gaps use unrounded AUROCs and are shown in AUROC units")
     st.table(pd.DataFrame(rows).set_index("Model"))
+
+    # Determine leaders from full helper values, preserving ties rather than
+    # ranking rounded display values or recommending a model for clinical use.
+    for part, label in [("train", "TRAINING"), ("test", "TEST")]:
+        available = {name: values[part] for name, values in s.items()
+                     if values[part] is not None}
+        if available:
+            highest = max(available.values())
+            leaders = ", ".join(MODEL_LABEL[name] for name, value in available.items()
+                                if value == highest)
+            st.markdown(f"**Highest {label} AUROC:** {leaders} "
+                        f"({m11.fmt_num(highest, 4)}).")
+        else:
+            st.caption(f"Highest {label} AUROC: undefined.")
+
+    st.markdown(
+        "- **TRAINING AUROC** describes ranking on the same patients used to fit the model. "
+        "These results flatter the model because it has already learned from these patients.\n"
+        "- **TEST AUROC** describes ranking on patients not used to fit the model. "
+        "It provides evidence about performance on unseen patients, with uncertainty about future populations.\n"
+        "- **Generalization gap (TRAINING − TEST)** shows how much ranking performance falls "
+        "from training patients to test patients. A large positive gap suggests overfitting: "
+        "the model may have learned details of the training patients that do not carry over. "
+        "A negative gap means TEST AUROC exceeded TRAINING AUROC in this sample; "
+        "sampling differences can affect either score."
+    )
+    st.write("A model can rank familiar patients very well yet perform less well on new patients. "
+             "Compare the TEST column before judging how well a high TRAINING score carries over; "
+             "neither a high TRAINING score nor a small gap guarantees clinical usefulness.")
+    st.caption("AUROC describes how often a patient with the outcome receives a higher probability "
+               "than a patient without it, with ties receiving half credit. It is not accuracy "
+               "and does not choose a classification threshold. Undefined AUROCs or gaps are shown as undefined.")
 
 
 RENDER = dict(zip(SECTIONS, [beyond_accuracy, threshold, train_vs_test]))
