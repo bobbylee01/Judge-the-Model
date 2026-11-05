@@ -1,5 +1,4 @@
-**App:** _paste your public app link here_
-
+**App:** https://judge-the-model-6mfxnarsnl7xehhzjshvhm.streamlit.app/
 # Judge the Model
 
 An app that helps a clinical lead judge whether any classifier is fit for each job: 30-day readmission and diabetes screening. It reads the results my Python analysis exported to `results/`.
