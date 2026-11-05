@@ -7,8 +7,8 @@
 
 ## Before results
 For each dataset: positive class; which error matters more for the job (missed positive or false alarm) and why.
-- readmission:
-- diabetes:
+- readmission: The positive class is a patient being readmitted to the hospital within 30 days, missed positives are more concerning because not identifying conditions on a patient could prevent them from receiving the proper follow up and care once discharged. Although false alarms are undesired, with extra costs and unnecessary treatments, missed positives can lead to more serious outcomes.
+- diabetes: The positive class is a patient that was screened positive for diabetes. Missed positives matter more because failing to identify diabetes could delay proper care and treatment which can lead to serious complications. False alarms can lead to extra testing, but is overall less harmful.
 
 ## Recommendations
 - readmission: <model and threshold, or "none is adequate for this job"> because ...
