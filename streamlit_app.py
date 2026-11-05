@@ -126,12 +126,82 @@ def beyond_accuracy(res: dict, model: str) -> None:
 
 # ---- 2. A Threshold for the Job ------------------------------------------------
 def threshold(res: dict, model: str) -> None:
-    starter_note("metrics at 0.50 only.")
-    p, y = m11.preds(res, model)
-    m = m11.metrics(m11.confusion(p, y, 0.5))
-    st.caption(f"{TEST} · {m11.MODEL_LABEL[model]}, threshold 0.50")
-    st.table(pd.DataFrame([{"Sensitivity": m11.fmt_pct(m["sensitivity"]), "Specificity": m11.fmt_pct(m["specificity"]),
-                            "Precision": m11.fmt_pct(m["precision"]), "Flagged per 100": f"{m['flagged_per_100']:.1f}"}]))
+    st.write("Explore how the same model's decisions change when you change the probability "
+             "needed to flag a patient. Use the sidebar to select a dataset and model.")
+    if res["dataset"] == "diabetes":
+        st.info("Diabetes screening clinical sensitivity target: ≥ 0.90 (90%). "
+                "Of adults meeting the diabetes definition (doctor diagnosis or HbA1c ≥ 6.5%), "
+                "the aim is to flag at least 90% for follow-up testing.")
+    else:
+        st.caption("Positive class: readmitted within 30 days. A positive prediction flags a patient for review.")
+    selected = st.slider("Classification threshold", min_value=0.0, max_value=1.0,
+                         value=0.5, step=0.01, format="%.2f", key="classification_threshold")
+    p, y = m11.preds(res, model, "test")
+    fixed_counts = m11.confusion(p, y, 0.5)
+    selected_counts = m11.confusion(p, y, selected)
+    fixed_metrics = m11.metrics(fixed_counts)
+    selected_metrics = m11.metrics(selected_counts)
+
+    st.caption(f"TEST · {MODEL_LABEL[model]} · flag when probability ≥ threshold · "
+               "rows = Actual, columns = Predicted · positive first")
+    for column, label, value, counts, scores in zip(
+        st.columns(2), ["Fixed", "Selected"], [0.5, selected],
+        [fixed_counts, selected_counts], [fixed_metrics, selected_metrics],
+    ):
+        with column:
+            st.subheader(f"TEST · {label} threshold {value:.2f}")
+            st.caption("TEST confusion matrix · patient counts")
+            st.table(confusion_table(counts))
+            # The helper's flagged_per_100 uses (TP + FP) / actual TEST n.
+            # False alarms per 100 all adults use the same denominator, not FP + TN.
+            false_alarms = None if scores["n"] == 0 else 100 * counts["fp"] / scores["n"]
+            summary = {
+                "Sensitivity (Recall/TPR)": m11.fmt_pct(scores["sensitivity"], 2),
+                "Specificity": m11.fmt_pct(scores["specificity"], 2),
+                "Precision": m11.fmt_pct(scores["precision"], 2),
+                "False positives (false alarms)": f"{counts['fp']:,}",
+                "False negatives (missed cases)": f"{counts['fn']:,}",
+                "Patients flagged per 100 TEST patients": m11.fmt_num(scores["flagged_per_100"], 2),
+                "False alarms per 100 TEST patients": m11.fmt_num(false_alarms, 2),
+            }
+            st.table(pd.DataFrame(summary.items(), columns=["TEST metric", "TEST value"]).set_index("TEST metric"))
+            if res["dataset"] == "diabetes":
+                sensitivity = scores["sensitivity"]
+                status = ("undefined" if sensitivity is None else
+                          "target met" if sensitivity >= 0.90 else "below target")
+                st.markdown(f"**TEST sensitivity target: {status}.** "
+                            f"At threshold {value:.2f}, there are "
+                            f"**{m11.fmt_num(false_alarms, 2)} false alarms per 100 adults** "
+                            "in this TEST sample.")
+
+    st.caption("TP: correctly flagged cases; FN: cases missed; FP: false alarms; TN: correctly unflagged non-cases. "
+               "Sensitivity: of patients with the outcome, the share flagged. "
+               "Specificity: of patients without the outcome, the share not flagged. "
+               "Precision: of flagged patients, the share with the outcome. Zero denominators display as undefined.")
+    st.markdown(
+        f"**TEST change from 0.50:** correctly flagged cases (TP) "
+        f"{selected_counts['tp'] - fixed_counts['tp']:+,}; false alarms (FP) "
+        f"{selected_counts['fp'] - fixed_counts['fp']:+,}; missed cases (FN) "
+        f"{selected_counts['fn'] - fixed_counts['fn']:+,}."
+    )
+    st.write("Lowering the threshold can detect more cases and miss fewer patients, but can also "
+             "flag more patients who do not have the outcome. Counts change only when a patient's "
+             "probability crosses the threshold, so some slider steps leave the counts unchanged.")
+    st.caption("False alarms per 100 = 100 × FP ÷ all TEST patients. "
+               "This differs from FPR, whose denominator is only patients without the outcome. "
+               "Patients flagged per 100 = 100 × (TP + FP) ÷ all TEST patients.")
+    if res["dataset"] == "diabetes":
+        st.write("Lower the slider until the TEST sensitivity target shows 'target met', then read "
+                 "the selected threshold's false alarms per 100 adults. Different thresholds may "
+                 "meet the target with different follow-up workloads; the choice remains yours.")
+    st.metric("TEST AUROC · unchanged by threshold", m11.fmt_num(m11.auroc(p, y)))
+    st.write("Changing the threshold changes the decision rule applied to saved probabilities. "
+             "It does not retrain the model or change those probabilities. Retraining would fit "
+             "the model again on training data. AUROC measures ranking across thresholds, so "
+             "moving this slider does not change it; AUROC is not accuracy and does not choose a threshold.")
+    st.warning("Choosing a threshold based on TEST performance can make expected performance on "
+               "future patients optimistic. This comparison is exploratory; threshold selection "
+               "should use separate validation data, with final evaluation on untouched patients.")
 
 
 # ---- 3. Training vs. Test ------------------------------------------------------
