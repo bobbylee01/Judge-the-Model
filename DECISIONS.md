@@ -16,5 +16,5 @@ For each dataset: positive class; which error matters more for the job (missed p
 
 ## Design choice and AI use
 A few sentences each. The design choice must be your own idea, not an AI tool's.
-- design choice: <one thing you chose to show, or leave out, for your clinical lead> because ...
-- AI suggestion I turned down: <what an AI tool suggested, and why you didn't use it, or "no AI tools used">
+- design choice: I chose to display the confusion matrix and key performance metrics side by side in the 'Beyond Accuracy' section because it allows for easier comparison without having to scroll between different sections. 
+- AI suggestion I turned down: Codex suggested adding interactive ROC curves to compare the classification model. I decided to turn this suggestion down because it was an uncessary feature as the existing AUROC comparison table already provides the necessary information to evaluate model discrimination.

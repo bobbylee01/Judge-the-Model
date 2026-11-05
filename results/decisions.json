@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-11-05T12:25:31Z",
+  "exported_at": "2026-11-05T15:04:11Z",
   "words": 103,
   "word_limit": 150,
   "sections": {
@@ -12,14 +12,14 @@
       "diabetes": ""
     },
     "design": {
-      "design_choice": "",
-      "ai_turned_down": ""
+      "design_choice": "I chose to display the confusion matrix and key performance metrics side by side in the 'Beyond Accuracy' section because it allows for easier comparison without having to scroll between different sections.",
+      "ai_turned_down": "Codex suggested adding interactive ROC curves to compare the classification model. I decided to turn this suggestion down because it was an uncessary feature as the existing AUROC comparison table already provides the necessary information to evaluate model discrimination."
     }
   },
   "complete": {
     "before_results": true,
     "recommendations": false,
-    "design": false
+    "design": true
   },
   "recommendations": {
     "readmission": "",
