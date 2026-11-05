@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-11-05T15:04:11Z",
+  "exported_at": "2026-11-05T15:15:50Z",
   "words": 103,
   "word_limit": 150,
   "sections": {
@@ -8,8 +8,8 @@
       "diabetes": "The positive class is a patient that was screened positive for diabetes. Missed positives matter more because failing to identify diabetes could delay proper care and treatment which can lead to serious complications. False alarms can lead to extra testing, but is overall less harmful."
     },
     "recommendations": {
-      "readmission": "",
-      "diabetes": ""
+      "readmission": "None is adequate for definite use without further validation. The default 0.5 threshold is inadequate because missing high-risk patients is of major concern. High accuracy can be misleading when readmissions are uncommon, therefore a model should show better sensitivity and keep false alarms low.",
+      "diabetes": "None is adequate for definite use without further validation. However, a model with a threshold that achieves at least 0.90 sensitivity with minimal false positives would be prioritized. Further validation is necessary before a recommendation is made."
     },
     "design": {
       "design_choice": "I chose to display the confusion matrix and key performance metrics side by side in the 'Beyond Accuracy' section because it allows for easier comparison without having to scroll between different sections.",
@@ -18,11 +18,11 @@
   },
   "complete": {
     "before_results": true,
-    "recommendations": false,
+    "recommendations": true,
     "design": true
   },
   "recommendations": {
-    "readmission": "",
-    "diabetes": ""
+    "readmission": "None is adequate for definite use without further validation. The default 0.5 threshold is inadequate because missing high-risk patients is of major concern. High accuracy can be misleading when readmissions are uncommon, therefore a model should show better sensitivity and keep false alarms low.",
+    "diabetes": "None is adequate for definite use without further validation. However, a model with a threshold that achieves at least 0.90 sensitivity with minimal false positives would be prioritized. Further validation is necessary before a recommendation is made."
   }
 }

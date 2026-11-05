@@ -11,8 +11,8 @@ For each dataset: positive class; which error matters more for the job (missed p
 - diabetes: The positive class is a patient that was screened positive for diabetes. Missed positives matter more because failing to identify diabetes could delay proper care and treatment which can lead to serious complications. False alarms can lead to extra testing, but is overall less harmful.
 
 ## Recommendations
-- readmission: <model and threshold, or "none is adequate for this job"> because ...
-- diabetes: ...
+- readmission: None is adequate for definite use without further validation. The default 0.5 threshold is inadequate because missing high-risk patients is of major concern. High accuracy can be misleading when readmissions are uncommon, therefore a model should show better sensitivity and keep false alarms low.
+- diabetes: None is adequate for definite use without further validation. However, a model with a threshold that achieves at least 0.90 sensitivity with minimal false positives would be prioritized. Further validation is necessary before a recommendation is made.
 
 ## Design choice and AI use
 A few sentences each. The design choice must be your own idea, not an AI tool's.
